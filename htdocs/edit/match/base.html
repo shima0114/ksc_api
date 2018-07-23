@@ -1,0 +1,33 @@
+<header>
+    <div class="page-header">
+        <h3>大会基本情報</h3>
+    </div>
+</header>
+<div class="container-fluid">
+    <form>
+        <div class="form-group form-inline">
+            <label for="match_name">大会名</label>
+            <input id="match_name" name="match_name" type="text" class="form-content">
+        </div>
+        <div class="form-group form-inline">
+            <label for="match_date">開催日</label>
+            <input id="match_date" name="match_date" type="text" class="form-content">
+        </div>
+        <div class="form-group form-inline">
+            <label for="match_venue">会場</label>
+            <input id="match_venue" name="match_venue" type="text" class="form-content">
+        </div>
+        <input type="button" value="次へ" onclick="inputTeam()">
+    </form>
+</div>
+<script type="text/javascript">
+    function inputTeam() {
+        // Create hidden
+        var nameTag = $("#match_name").clone().attr("type", "hidden").removeAttr("class");
+        var dateTag = $("#match_date").clone().attr("type", "hidden").removeAttr("class");
+        var venueTag = $("#match_venue").clone().attr("type", "hidden").removeAttr("class");
+        $("#param-area").append(nameTag).append(dateTag).append(venueTag);
+        callApi("/api/Match/createBase", "match/team");
+        //showEditPage("match/team");
+    }
+</script>

@@ -1,0 +1,61 @@
+<header>
+    <div class="page-header">
+        <h3>出場チーム名登録</h3>
+    </div>
+</header>
+<div class="container-fluid">
+    <div class="table-responsive">
+        <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-xs-2 text-center">自チーム</th>
+                        <th class="col-xs-10 text-center">チーム名</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="input-base" style="display:none">
+                        <td class="text-center"><input type="checkbox" name="own_team"></td>
+                        <td><input class="col-xs-10" type="text" name="team_name"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="own_team_1"></td>
+                        <td><input class="col-xs-10" type="text" name="team_name_1"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="own_team_2"></td>
+                        <td><input class="col-xs-10" type="text" name="team_name_2"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="own_team_3"></td>
+                        <td><input class="col-xs-10" type="text" name="team_name_3"></td>
+                    </tr>
+                </tbody>
+        </table>
+    </div>
+    <div class="container-fluid col-12 text-right">
+        <input type="button" name="add_team_input" value="+" onclick="addInputArea()">
+        <input type="hidden" id="team_count" value="3">
+    </div>
+    <div class="container-fluid">
+        <input type="button" value="戻る" onclick="backToBase()">
+        <input type="button" value="次へ" onclick="inputResult()">
+    </div>
+</div>
+<script type="text/javascript">
+    function addInputArea() {
+        var nextNum = parseInt($("#team_count").val()) + 1;
+        var $addInput = $($("#input-base").clone().removeAttr("id").removeAttr("style"));
+        $addInput.find("input[name='own_team']").attr("name", "own_team_" + nextNum);
+        $addInput.find("input[name='team_name']").attr("name", "team_name_" + nextNum);
+        $("#team_count").val(nextNum);
+        $("tbody").append($addInput);
+    }
+
+    function backToBase() {
+
+    }
+
+    function inputResult() {
+
+    }
+</script>
