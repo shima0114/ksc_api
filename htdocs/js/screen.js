@@ -39,3 +39,21 @@ function callApi(url, nextPage) {
             alert("failed")
         });
 }
+
+function renderTemplate(targetTmpl, renderArea, apiName, callBack) {
+    var urlPrefix = "/api/index.php";
+    // JsRenderテンプレート読み込み
+    var $tmpl = $("#" + targetTmpl);
+    // JSONを読み込み
+    $.getJSON(urlPrefix+ apiName, function(jsonData) {
+        console.log(jsonData);
+        // 読みこんだJSONをテンプレートへ反映し出力
+        $("#" + renderArea).append($tmpl.render(jsonData));
+        // callBack 実行
+        $(callBack);
+    })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.log("エラー：" + textStatus);
+            console.log("テキスト：" + jqXHR.responseText);
+        });
+}

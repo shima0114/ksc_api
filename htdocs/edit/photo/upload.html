@@ -1,0 +1,120 @@
+
+<link rel="stylesheet" href="/css/combo.css" type="text/css">
+<header>
+    <div class="page-header">
+        <h3>写真編集</h3>
+    </div>
+</header>
+<div class="container-fluid">
+    <ul class="nav nav-tabs">
+        <li class="nav-item active">
+            <a href="#mod" class="nav-link navbar-default" data-toggle="tab">追加</a>
+        </li>
+        <li class="nav-item">
+            <a href="#new" class="nav-link navbar-default" data-toggle="tab">新規</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+      <div id="mod" class="tab-pane active">
+          <form>
+              <div class="form-group ">
+                  <label for="photo_category">登録先</label>
+                  <select id="photo_category" class="form-control" onchange="changeCategory()">
+                      <option selected hidden>選択してください</option>
+                      <option value="album">アルバム</option>
+                      <option value="player">選手</option>
+                      <option value="staff">スタッフ</option>
+                  </select>
+              </div>
+              <div id="year_group_area"></div>
+              <div id="photo_title_area"></div>
+              <input id="mod_next" type="button" value="次へ" onclick="inputDetail()">
+          </form>
+      </div>
+      <div id="new" class="tab-pane">
+          編集中
+          <!--<form>
+              <div class="form-group ">
+                  <label for="new_photo_category">登録先</label>
+                  <select id="new_photo_category" class="form-control" onchange="changeInput()">
+                      <option selected disabled>選択してください</option>
+                      <option>アルバム</option>
+                      <option>選手</option>
+                      <option>スタッフ</option>
+                  </select>
+              </div>
+              <div class="form-group " id="new_year_group">
+                  <label for="new_photo_date">年度</label>
+                  <input id="new_photo_date" name="match_date" type="text" class="form-control">
+              </div>
+              <div class="form-group ">
+                  <label for="new_photo_title">タイトル</label>
+                  <input id="new_photo_title" name="match_venue" type="text" class="form-control">
+              </div>
+              <input id="new_next" type="button" value="次へ" onclick="inputDetail()">
+          </form>-->
+      </div>
+    </div>
+</div>
+
+<!-- render templates -->
+<script id="mod_album_year" type="text/x-jsrender">
+    <div class="form-group">
+        <label for="photo_date">年度</label>
+        <select id="photo_date" class="form-control" onchange="changeYear()">
+            <option selected hidden>選択してください</option>
+            {{for album}}
+            <option class="overflow" id="{{:year}}">{{:year}}</option>
+            {{/for}}
+        </select>
+    </div>
+</script>
+<script id="mod_album_group" type="text/x-jsrender">
+    <div class="form-group">
+        <label for="photo_title">タイトル</label>
+        <select class="overflow" id="photo_title">
+            <option selected hidden>選択してください</option>
+            {{for album}}
+            <option class="overflow" id="album_{{:id}}">{{:title}}</option>
+            {{/for}}
+        </select>
+    </div>
+</script>
+
+<script type="text/javascript">
+    function inputDetail() {
+        alert("工事中");
+        return;
+        // Create hidden
+        var nameTag = $("#match_name").clone().attr("type", "hidden").removeAttr("class");
+        var dateTag = $("#match_date").clone().attr("type", "hidden").removeAttr("class");
+        var venueTag = $("#match_venue").clone().attr("type", "hidden").removeAttr("class");
+        $("#param-area").append(nameTag).append(dateTag).append(venueTag);
+
+        // optionで登録API、表示内容を切り替え
+        callApi("/api/Match/createBase", "match/team");
+        //showEditPage("match/team");
+    }
+
+    function changeCategory() {
+        $("#year_group_area").empty();
+        var categoryCode = $("#photo_category").find("option:selected").val();
+        if (categoryCode === "album") {
+            renderTemplate("mod_album_year", "year_group_area", "/Album/lists/year");
+        } else if (categoryCode === "album") {
+
+        } else if (categoryCode === "album") {
+
+        } else {
+            alert("Valid option selected. Please contact administrator.");
+            return 0;
+        }
+    }
+
+    function changeYear() {
+        $("#photo_title_area").empty();
+        var year = $("#photo_date").find("option:selected").val();
+        renderTemplate("mod_album_group", "photo_title_area", "/Album/lists/title/?year="+year);
+    }
+    //# sourceURL=on_debug.js
+</script>

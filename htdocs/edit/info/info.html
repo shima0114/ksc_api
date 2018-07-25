@@ -1,0 +1,50 @@
+
+<link rel="stylesheet" href="/css/combo.css" type="text/css">
+<header>
+    <div class="page-header">
+        <h3>お知らせ登録・編集</h3>
+    </div>
+</header>
+<div class="container-fluid">
+    <form>
+        <div class="form-group form-inline">
+            <label for="photo_category">登録先</label>
+            <div class="input-group input-group-xs">
+                <select class="form-control" onchange="changeInput()">
+                    <option>アルバム</option>
+                    <option>選手</option>
+                    <option>スタッフ</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group form-inline" id="year_group">
+            <label for="match_date">年度</label>
+            <!-- 直近3年くらいを自動生成 -->
+            <input id="match_date" name="match_date" type="text" class="form-content">
+        </div>
+        <div class="form-group form-inline">
+            <label for="match_venue">タイトル</label>
+            <input id="match_venue" name="match_venue" type="text" class="form-content">
+        </div>
+        <input type="button" value="次へ" onclick="inputDetail()">
+    </form>
+</div>
+<script type="text/javascript">
+    function inputDetail() {
+        // Create hidden
+        var nameTag = $("#match_name").clone().attr("type", "hidden").removeAttr("class");
+        var dateTag = $("#match_date").clone().attr("type", "hidden").removeAttr("class");
+        var venueTag = $("#match_venue").clone().attr("type", "hidden").removeAttr("class");
+        $("#param-area").append(nameTag).append(dateTag).append(venueTag);
+
+        // optionで登録API、表示内容を切り替え
+        callApi("/api/Match/createBase", "match/team");
+        //showEditPage("match/team");
+    }
+
+    function changeInput() {
+        if ($(this).selected == 1) {
+            $("#year_group").display(false);
+        }
+    }
+</script>
