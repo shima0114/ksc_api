@@ -1,3 +1,6 @@
+
+var urlPrefix = "/api/index.php";
+
 $(function() {
     var pageName = getParam("p");
     if (!!!pageName) {
@@ -41,7 +44,6 @@ function callApi(url, nextPage) {
 }
 
 function renderTemplate(targetTmpl, renderArea, apiName, callBack) {
-    var urlPrefix = "/api/index.php";
     // JsRenderテンプレート読み込み
     var $tmpl = $("#" + targetTmpl);
     // JSONを読み込み

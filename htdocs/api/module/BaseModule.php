@@ -37,4 +37,8 @@ class BaseModule
     public function executeQueryStmt($sql) {
         return $this->db->query($sql);
     }
+
+    public function outputLog($array) {
+        error_log(print_r($array,true),"0");
+    }
 }

@@ -51,16 +51,20 @@ if (!empty($parse[2])) {
 }
 //各Controllerをインクルードし、JSONを返します
 if (file_exists('./controllers/'.$call.'.php')) {
-    include('./controllers/'.$call.'.php');
-    //$call名のcontrollerをインスタンス化します
-    $className = "controllers\\".$call;
-    //echo $className;
-    $obj = new $className();
-    //controllerのindexメソッドを呼びます
-    $response = json_encode($obj->$method($target));
-    //ヘッダーを指定してJSONを出力
-    header("Content-Type: application/json; charset=utf-8");
-    echo $response;
+    try {
+        include('./controllers/'.$call.'.php');
+        //$call名のcontrollerをインスタンス化します
+        $className = "controllers\\".$call;
+        //echo $className;
+        $obj = new $className();
+        //controllerのindexメソッドを呼びます
+        $response = json_encode($obj->$method($target));
+        //ヘッダーを指定してJSONを出力
+        header("Content-Type: application/json; charset=utf-8");
+        echo $response;
+    } catch (Exception $e) {
+        echo var_dump($e);
+    }
 } else {
-
+    echo "Invalid request call!!";
 }

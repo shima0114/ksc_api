@@ -54,7 +54,7 @@ class AlbumModule extends BaseModule
     }
 
     public function getYearList() {
-        $sql = 'SELECT year ';
+        $sql = 'SELECT id, year ';
         $sql = $sql.'FROM album ';
         $sql = $sql.'GROUP BY year ';
         $sql = $sql.'ORDER BY year desc ';
@@ -62,17 +62,17 @@ class AlbumModule extends BaseModule
         $stmt->execute();
         $yearGroup=[];
         while ($row=$stmt->fetch(PDO::FETCH_ASSOC)) {
-            $yearGroup[]=Array("year" => $row["year"]);
+            $yearGroup[]=Array("id" => $row["id"], "value" => $row["year"]);
         }
         return Array("album" => $yearGroup);
     }
 
     public function getTitleList() {
         $params = $_GET;
-        $sql = 'SELECT a.id, a.title ';
-        $sql = $sql.'FROM album a ';
-        $sql = $sql.'WHERE a.year = ? ';
-        $sql = $sql.'ORDER BY a.id';
+        $sql = 'SELECT id, title ';
+        $sql = $sql.'FROM album ';
+        $sql = $sql.'WHERE year = ? ';
+        $sql = $sql.'ORDER BY id';
         $stmt = $this->dba->prepare($sql);
 
         $year = $params["year"];
@@ -80,7 +80,7 @@ class AlbumModule extends BaseModule
         $stmt->execute();
         $album=[];
         while ($row=$stmt->fetch(PDO::FETCH_ASSOC)) {
-            $album[]=Array("id" => $row["id"], "title" => $row["title"]);
+            $album[]=Array("id" => $row["id"], "value" => $row["title"]);
         }
         return Array("album" => $album);
     }

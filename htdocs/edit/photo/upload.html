@@ -16,20 +16,28 @@
     </ul>
     <div class="tab-content">
       <div id="mod" class="tab-pane active">
-          <form>
-              <div class="form-group ">
-                  <label for="photo_category">登録先</label>
-                  <select id="photo_category" class="form-control" onchange="changeCategory()">
-                      <option selected hidden>選択してください</option>
-                      <option value="album">アルバム</option>
-                      <option value="player">選手</option>
-                      <option value="staff">スタッフ</option>
-                  </select>
-              </div>
-              <div id="year_group_area"></div>
-              <div id="photo_title_area"></div>
-              <input id="mod_next" type="button" value="次へ" onclick="inputDetail()">
-          </form>
+          <div class="form-group">
+              <label for="photo_category">登録先</label>
+              <select id="photo_category" class="form-control" onchange="changeCategory()">
+                  <option selected hidden>選択してください</option>
+                  <option value="album">アルバム</option>
+                  <option value="player">選手</option>
+                  <option value="staff">スタッフ</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+              <label for="year_option">年度</label>
+              <select id="year_option" class="form-control" onchange="changeYear()">
+                  <option selected hidden>選択してください</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="photo_title">タイトル</label>
+              <select id="photo_title" class="form-control overflow" onchange="selectGroupTitle()">
+                  <option selected hidden>選択してください</option>
+              </select>
+          </div>
       </div>
       <div id="new" class="tab-pane">
           編集中
@@ -54,67 +62,103 @@
               <input id="new_next" type="button" value="次へ" onclick="inputDetail()">
           </form>-->
       </div>
+
+    <form id="file_upload_form" method="post" enctype="multipart/form-data">
+        <input id="image_group_id" type="hidden" value="" name="id">
+        <div class="input-group">
+            <label class="input-group-btn">
+        <span class="btn btn-default">
+            写真選択<input id="upload_file" type="file" style="display:none">
+        </span>
+            </label>
+            <input id="upload_file_name" type="text" class="form-control" readonly="">
+        </div>
+        <div class="form-group">
+            <label for="title_1">写真タイトル</label>
+            <input class="form-control" id="title_1" type="text" name="title" placeholder="空白でも構いません">
+        </div>
+        <div class="text-right form-inline">
+            <!--<input class="form-control" id="add_photo" type="button" value="写真追加" onclick="addPhoto()">-->
+            <input class="form-control" id="mod_next" type="button" value="登録" onclick="addPhoto()">
+        </div>
+    </form>
     </div>
 </div>
 
-<!-- render templates -->
-<script id="mod_album_year" type="text/x-jsrender">
-    <div class="form-group">
-        <label for="photo_date">年度</label>
-        <select id="photo_date" class="form-control" onchange="changeYear()">
-            <option selected hidden>選択してください</option>
-            {{for album}}
-            <option class="overflow" id="{{:year}}">{{:year}}</option>
-            {{/for}}
-        </select>
-    </div>
-</script>
-<script id="mod_album_group" type="text/x-jsrender">
-    <div class="form-group">
-        <label for="photo_title">タイトル</label>
-        <select class="overflow" id="photo_title">
-            <option selected hidden>選択してください</option>
-            {{for album}}
-            <option class="overflow" id="album_{{:id}}">{{:title}}</option>
-            {{/for}}
-        </select>
-    </div>
-</script>
-
 <script type="text/javascript">
-    function inputDetail() {
-        alert("工事中");
-        return;
-        // Create hidden
-        var nameTag = $("#match_name").clone().attr("type", "hidden").removeAttr("class");
-        var dateTag = $("#match_date").clone().attr("type", "hidden").removeAttr("class");
-        var venueTag = $("#match_venue").clone().attr("type", "hidden").removeAttr("class");
-        $("#param-area").append(nameTag).append(dateTag).append(venueTag);
+    $("#upload_file").on('change', function() {
+        var input = $(this),
+            numFiles = input.get(0).files ? input.get(0).files.length : 1,
+            label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+        $("#upload_file_name").val(label);
+    });
 
-        // optionで登録API、表示内容を切り替え
-        callApi("/api/Match/createBase", "match/team");
-        //showEditPage("match/team");
+    function addPhoto() {
+        //alert("工事中");
+        //return;
+        // Create form data
+        var fd = new FormData($('#file_upload_form').get(0));
+        //fd.append("file", $("#upload_file").prop("files")[0]);
+        $.ajax({
+            url: '/api/index.php/File/upload/album',
+            type: 'post',
+            dataType: 'json',
+            data: fd,
+            processData: false,
+            contentType: false
+        })
+            .done(function(res){
+                console.log(res);
+            })
+            .fail(function(jqXHR, statusText, errorThrown){
+                console.log(jqXHR, statusText, errorThrown);
+            });
+        return this;
+
     }
 
     function changeCategory() {
         $("#year_group_area").empty();
         var categoryCode = $("#photo_category").find("option:selected").val();
         if (categoryCode === "album") {
-            renderTemplate("mod_album_year", "year_group_area", "/Album/lists/year");
-        } else if (categoryCode === "album") {
+            addOptionTag("#year_option", "/Album/lists/year", "");
+        } else if (categoryCode === "staff") {
 
-        } else if (categoryCode === "album") {
+        } else if (categoryCode === "player") {
 
         } else {
             alert("Valid option selected. Please contact administrator.");
-            return 0;
+            return;
         }
     }
 
     function changeYear() {
-        $("#photo_title_area").empty();
-        var year = $("#photo_date").find("option:selected").val();
-        renderTemplate("mod_album_group", "photo_title_area", "/Album/lists/title/?year="+year);
+        var year = $("#year_option").find("option:selected").val();
+        addOptionTag("#photo_title", "/Album/lists/title/?year="+year, "album_");
+    }
+
+    function selectGroupTitle() {
+        var groupId = $("#photo_title").find("option:selected").attr("id");
+        $("#image_group_id").val(groupId);
+    }
+
+    function addOptionTag(selector, apiUrl, idPrefix) {
+        // parent select initialize.
+        $(selector).empty();
+        // create information option tag.
+        var $optInfoTag = $("<option selected hidden>選択してください</option>");
+        $(selector).append($optInfoTag);
+
+        $.getJSON(urlPrefix+apiUrl, function(jsonData) {
+            $.each(jsonData["album"], function () {
+                // option tag initialize.
+                var $optTag = $("<option>").addClass("overflow");
+                // add value
+                $optTag.attr("id", idPrefix + this["id"]).val(this["value"]).text(this["value"]);
+                // append parent select tag
+                $(selector).append($optTag);
+            });
+        });
     }
     //# sourceURL=on_debug.js
 </script>
