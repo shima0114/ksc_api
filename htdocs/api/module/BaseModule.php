@@ -41,4 +41,8 @@ class BaseModule
     public function outputLog($array) {
         error_log(print_r($array,true),"0");
     }
+
+    public function lastInsertId($name) {
+        return $this->db->lastInsertId($name);
+    }
 }

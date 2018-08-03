@@ -15,30 +15,53 @@ class FileModule extends BaseModule
     }
 
     public function uploadAlbum() {
+        $method = "uploadLocalServer";
+
         $params = $_POST;
         // ファイル拡張子取得
         $file_ext = pathinfo($_FILES['file']['name']);
-        //ファイル名を日付に変更
-        $time = date("YmdHis");
-        $file_name = $time.".".$file_ext[extension];
+        //ファイル名をランダム文字列に変更
+        $file_name = $this->makeRandFileName().".".$file_ext[extension];
         //保存先のパス
-        //index.php file_api.phpと同層にupload_fileディレクトリが存在
         $file_path = "/images/album/".$file_name;
-$this->outputLog(Array("on_debug" => $params));
-return;
-        $tmp_file = $_FILES['file']['tmp_name'];
-        $result = $this->uploadHtmlServer($file_path, $tmp_file);
-        //FTPに成功したらファイル情報をDBに登録
+        //UPLOAD実施
+        $result = $this->$method($file_path, $_FILES['file']['tmp_name']);
+
+        //UPLOADに成功したらファイル情報をDBに登録
         $ret=[];
         if ($result) {
-            $stmt = $this->db->prepare("INSERT INTO image_content (group_code, title, file_path) values (?, ?, ?)");
-            $stmt->bindPartam(1, $params["id"]);
-            $stmt->bindPartam(2, $params['title']);
-            $stmt->bindPartam(3, $file_path);
+            $groupCode="";
+            // new or add
+            if ("new" == $params["proc"]) {
+                $this->outputLog(Array("message" => "in proc new.", "params" => $params));
+                // 新規の場合は先にアルバム情報を作成
+                $stmt = $this->dba->prepare("INSERT INTO album (year, title) values (?, ?)");
+                $stmt->bindParam(1, $params["year"]);
+                $stmt->bindParam(2, $params['group-title']);
+                $stmt->execute();
+                $this->outputLog(Array("message" => "create album record."));
+                $insId = $this->dba->lastInsertId("id");
+                $this->outputLog(Array("message" => "get last insert id.", "id" => $insId));
+                // image_group作成
+                $groupCode = 'album_'.$insId;
+                $stmt = $this->dba->prepare("INSERT INTO image_group (code, name) values (?, ?)");
+                $stmt->bindParam(1, $groupCode);
+                $stmt->bindParam(2, $params['group-title']);
+                $stmt->execute();
+                $this->outputLog(Array("message" => "create group record."));
+            } else {
+                $groupCode = $params["id"];
+            }
+            $this->outputLog(Array("message" => "insert image start.", "group code" => $groupCode));
+            // image_content
+            $stmt = $this->dba->prepare("INSERT INTO image_content (group_code, title, file_path) values (?, ?, ?)");
+            $stmt->bindParam(1, $groupCode);
+            $stmt->bindParam(2, $params['title']);
+            $stmt->bindParam(3, $file_path);
             $stmt->execute();
             $ret = Array("result" => "Success.");
         } else {
-            $ret = Array("result" => "FTP error.");
+            $ret = Array("result" => "Upload error.");
         }
         return $ret;
     }
@@ -63,6 +86,21 @@ return;
 
     }
 
+    private function uploadLocalServer($serverPath, $file) {
+        try {
+            $file_path = "/Users/koshimab/IdeaProjects/Funabashi_ksc/htdocs".$serverPath;
+            $result = rename($file, $file_path);
+            if (!$result) {
+                $this->outputLog(Array("error" => "move_upload_file error.", "result" => $result));
+                return false;
+            }
+            $this->outputLog($file_path);
+        } catch (Exception $e) {
+            $this->outputLog($e);
+            return false;
+        }
+        return true;
+    }
 
     private function uploadHtmlServer($serverPath, $file) {
         // ftp to html server.
@@ -85,14 +123,67 @@ return;
 
         ftp_pasv($connection, true);
         $ftpResult = ftp_put($connection, $remote_file, $upload_file, FTP_BINARY, false);
-
+        $retCode = true;
         if (!$ftpResult) {
             //throw new InternalErrorException('Something went wrong.');
-            return false;
-            ftp_close($connection);
+            $retCode = false;
         }
 
         ftp_close($connection);
-        return true;
+        return $retCode;
+    }
+
+    function makeRandFileName() {
+        $str = array_merge(range('a', 'z'), range('0', '9'), range('A', 'Z'));
+        $r_str = null;
+        for ($i = 0; $i < 15; $i++) {
+            $r_str .= $str[rand(0, count($str) - 1)];
+        }
+        return uniqid($r_str);
+    }
+
+    /*
+    第一引数は、<input type="file" name="img" />でアップした$_FILES["img"]などです。
+
+    第二引数は、リサイズ後の横幅です。
+
+    第三引数は、リサイズ後の画像を保存するディレクトリのパスです。（最後に/は不要）
+
+    第三引数を指定しない場合は、この関数を使用したPHPファイルと同じディレクトリに保存されます。
+    */
+    function compressImageFile($image, $file_name, $new_width, $dir){
+        list($width,$height,$type) = getimagesize($image);
+        $new_height = round($height*$new_width/$width);
+        $emp_img = imagecreatetruecolor($new_width,$new_height);
+        switch($type){
+            case IMAGETYPE_JPEG:
+                $new_image = imagecreatefromjpeg($image);
+                break;
+            case IMAGETYPE_GIF:
+                $new_image = imagecreatefromgif($image);
+                break;
+            case IMAGETYPE_PNG:
+                imagealphablending($emp_img, false);
+                imagesavealpha($emp_img, true);
+                $new_image = imagecreatefrompng($image);
+                break;
+        }
+        imagecopyresampled($emp_img, $new_image,0,0,0,0,$new_width,$new_height,$width,$height);
+        switch($type){
+            case IMAGETYPE_JPEG:
+                imagejpeg($emp_img,$dir."/".$file_name);
+                break;
+            case IMAGETYPE_GIF:
+                $bgcolor = imagecolorallocatealpha($new_image,0,0,0,127);
+                imagefill($emp_img, 0, 0, $bgcolor);
+                imagecolortransparent($emp_img,$bgcolor);
+                imagegif($emp_img,$dir."/".$file_name);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($emp_img,$dir."/".$file_name);
+                break;
+        }
+        imagedestroy($emp_img);
+        imagedestroy($new_image);
     }
 }

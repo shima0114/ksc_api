@@ -11,3 +11,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+#loading {
+    position: fixed;
+    left: 47%;
+    top: 50%;
+}

@@ -1,5 +1,4 @@
 
-<link rel="stylesheet" href="/css/combo.css" type="text/css">
 <header>
     <div class="page-header">
         <h3>写真編集</h3>
@@ -8,38 +7,52 @@
 <div class="container-fluid">
     <ul class="nav nav-tabs">
         <li class="nav-item active">
-            <a href="#mod" class="nav-link navbar-default" data-toggle="tab">追加</a>
+            <a href="#album" class="nav-link navbar-default" data-toggle="tab" onclick="changeCategory('album')">アルバム</a>
         </li>
         <li class="nav-item">
-            <a href="#new" class="nav-link navbar-default" data-toggle="tab">新規</a>
+            <a href="#player" class="nav-link navbar-default" data-toggle="tab" onclick="changeCategory('player')">選手</a>
+        </li>
+        <li class="nav-item">
+            <a href="#staff" class="nav-link navbar-default" data-toggle="tab" onclick="changeCategory('staff')">スタッフ</a>
         </li>
     </ul>
     <div class="tab-content">
-      <div id="mod" class="tab-pane active">
+      <div id="album" class="tab-pane active">
           <div class="form-group">
-              <label for="photo_category">登録先</label>
-              <select id="photo_category" class="form-control" onchange="changeCategory()">
-                  <option selected hidden>選択してください</option>
-                  <option value="album">アルバム</option>
-                  <option value="player">選手</option>
-                  <option value="staff">スタッフ</option>
+              <label for="photo_category">新規・追加</label>
+              <select id="photo_category" class="form-control" onchange="changeProc()">
+                  <option value="new" selected>新規</option>
+                  <option value="add">追加</option>
               </select>
           </div>
 
-          <div class="form-group">
-              <label for="year_option">年度</label>
-              <select id="year_option" class="form-control" onchange="changeYear()">
-                  <option selected hidden>選択してください</option>
-              </select>
+          <div id="album_new">
+              <div class="form-group">
+                  <label for="year_option">年度</label>
+                  <input type="text" class="form-control" id="input_year">
+              </div>
+              <div class="form-group">
+                  <label for="photo_title">タイトル</label>
+                  <input type="text" class="form-control" id="input_group_title">
+              </div>
           </div>
-          <div class="form-group">
-              <label for="photo_title">タイトル</label>
-              <select id="photo_title" class="form-control overflow" onchange="selectGroupTitle()">
-                  <option selected hidden>選択してください</option>
-              </select>
+          <div id="album_add" hidden>
+              <div class="form-group">
+                  <label for="year_option">年度</label>
+                  <select id="year_option" class="form-control" onchange="changeYear()">
+                      <option selected hidden>選択してください</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="photo_title">タイトル</label>
+                  <select id="photo_title" class="form-control overflow" onchange="selectGroupTitle()">
+                      <option selected hidden>選択してください</option>
+                  </select>
+              </div>
           </div>
+
       </div>
-      <div id="new" class="tab-pane">
+      <div id="player" class="tab-pane">
           編集中
           <!--<form>
               <div class="form-group ">
@@ -62,13 +75,36 @@
               <input id="new_next" type="button" value="次へ" onclick="inputDetail()">
           </form>-->
       </div>
-
+        <div id="staff" class="tab-pane">
+            編集中
+            <!--<form>
+                <div class="form-group ">
+                    <label for="new_photo_category">登録先</label>
+                    <select id="new_photo_category" class="form-control" onchange="changeInput()">
+                        <option selected disabled>選択してください</option>
+                        <option>アルバム</option>
+                        <option>選手</option>
+                        <option>スタッフ</option>
+                    </select>
+                </div>
+                <div class="form-group " id="new_year_group">
+                    <label for="new_photo_date">年度</label>
+                    <input id="new_photo_date" name="match_date" type="text" class="form-control">
+                </div>
+                <div class="form-group ">
+                    <label for="new_photo_title">タイトル</label>
+                    <input id="new_photo_title" name="match_venue" type="text" class="form-control">
+                </div>
+                <input id="new_next" type="button" value="次へ" onclick="inputDetail()">
+            </form>-->
+        </div>
+    <div id="loading" />
     <form id="file_upload_form" method="post" enctype="multipart/form-data">
         <input id="image_group_id" type="hidden" value="" name="id">
         <div class="input-group">
             <label class="input-group-btn">
         <span class="btn btn-default">
-            写真選択<input id="upload_file" type="file" style="display:none">
+            写真選択<input id="upload_file" name="upload_file" type="file" style="display:none">
         </span>
             </label>
             <input id="upload_file_name" type="text" class="form-control" readonly="">
@@ -81,7 +117,23 @@
             <!--<input class="form-control" id="add_photo" type="button" value="写真追加" onclick="addPhoto()">-->
             <input class="form-control" id="mod_next" type="button" value="登録" onclick="addPhoto()">
         </div>
+        <input type="hidden" name="proc" id="proc" value="new">
+        <input type="hidden" name="category" id="category" value="album">
+        <input type="hidden" name="year" id="send_year" value="">
+        <input type="hidden" name="group-title" id="send_group_title" value="">
     </form>
+    </div>
+</div>
+<div class="modal fade" id="modal-result" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" id="result-msg">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -94,11 +146,12 @@
     });
 
     function addPhoto() {
-        //alert("工事中");
-        //return;
+        $("#loading").html("<img src='/images/load.gif'/>");
         // Create form data
+        $('#send_year').val($("#input_year").val());
+        $('#send_group_title').val($("#input_group_title").val());
         var fd = new FormData($('#file_upload_form').get(0));
-        //fd.append("file", $("#upload_file").prop("files")[0]);
+        fd.append("file", $("#upload_file").prop("files")[0]);
         $.ajax({
             url: '/api/index.php/File/upload/album',
             type: 'post',
@@ -108,24 +161,40 @@
             contentType: false
         })
             .done(function(res){
-                console.log(res);
+                $("#upload_file").val('');
+                $("#upload_file_name").val('');
+                $("#result-msg").text('成功');
+                $('#modal-result').modal("show");
             })
             .fail(function(jqXHR, statusText, errorThrown){
+                $("#result-msg").text('失敗');
+                $('#modal-result').modal("show");
                 console.log(jqXHR, statusText, errorThrown);
+            })
+            .always(function(res) {
+                $("#loading").empty();
+                window.setTimeout("$('#modal-result').modal('hide')", 3000);
             });
         return this;
 
     }
 
-    function changeCategory() {
+    function changeCategory(category) {
+        $("#category").val(category);
+    }
+
+    function changeProc() {
         $("#year_group_area").empty();
-        var categoryCode = $("#photo_category").find("option:selected").val();
-        if (categoryCode === "album") {
+        var procCode = $("#photo_category").find("option:selected").val();
+        $("#proc").val(procCode);
+        if (procCode === "add") {
+            $("#album_new").hide();
+            $("#album_add").show();
             addOptionTag("#year_option", "/Album/lists/year", "");
-        } else if (categoryCode === "staff") {
-
-        } else if (categoryCode === "player") {
-
+        } else if (procCode === "new") {
+            $("#album_add").hide();
+            $("#album_new").show();
+            $("#photo_title").find("option:gt(0)").remove();
         } else {
             alert("Valid option selected. Please contact administrator.");
             return;
