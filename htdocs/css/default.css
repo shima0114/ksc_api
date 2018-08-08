@@ -1,0 +1,19 @@
+.input-group input {
+    width: 70%;
+}
+.input-group input select {
+    width: 30%;
+}
+
+.overflow {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#loading {
+    position: fixed;
+    left: 47%;
+    top: 50%;
+}
