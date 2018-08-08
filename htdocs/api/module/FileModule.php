@@ -16,52 +16,56 @@ class FileModule extends BaseModule
 
     public function uploadAlbum() {
         $method = "uploadLocalServer";
-
+        // POSTパラメータ取得
         $params = $_POST;
-        // ファイル拡張子取得
-        $file_ext = pathinfo($_FILES['file']['name']);
-        //ファイル名をランダム文字列に変更
-        $file_name = $this->makeRandFileName().".".$file_ext[extension];
-        //保存先のパス
-        $file_path = "/images/album/".$file_name;
-        //UPLOAD実施
-        $result = $this->$method($file_path, $_FILES['file']['tmp_name']);
-
-        //UPLOADに成功したらファイル情報をDBに登録
         $ret=[];
-        if ($result) {
-            $groupCode="";
-            // new or add
-            if ("new" == $params["proc"]) {
-                $this->outputLog(Array("message" => "in proc new.", "params" => $params));
-                // 新規の場合は先にアルバム情報を作成
-                $stmt = $this->dba->prepare("INSERT INTO album (year, title) values (?, ?)");
-                $stmt->bindParam(1, $params["year"]);
-                $stmt->bindParam(2, $params['group-title']);
-                $stmt->execute();
-                $this->outputLog(Array("message" => "create album record."));
-                $insId = $this->dba->lastInsertId("id");
-                $this->outputLog(Array("message" => "get last insert id.", "id" => $insId));
-                // image_group作成
-                $groupCode = 'album_'.$insId;
-                $stmt = $this->dba->prepare("INSERT INTO image_group (code, name) values (?, ?)");
+
+        // ファイルオブジェクトの分ループ（複数アップロード対応）
+        for ($i = 0; $i < count($_FILES['file']['name']); $i++) {
+            // ファイル拡張子取得
+            $file_ext = pathinfo($_FILES['file']['name'][$i]);
+            //ファイル名をランダム文字列に変更
+            $file_name = $this->makeRandFileName().".".$file_ext[extension];
+            //保存先のパス
+            $file_path = "/images/album/".$file_name;
+            //UPLOAD実施
+            $result = $this->$method($file_path, $_FILES['file']['tmp_name']);
+
+            //UPLOADに成功したらファイル情報をDBに登録
+            if ($result) {
+                $groupCode="";
+                // new or add
+                if ("new" == $params["proc"]) {
+                    $this->outputLog(Array("message" => "in proc new.", "params" => $params));
+                    // 新規の場合は先にアルバム情報を作成
+                    $stmt = $this->dba->prepare("INSERT INTO album (year, title) values (?, ?)");
+                    $stmt->bindParam(1, $params["year"]);
+                    $stmt->bindParam(2, $params['group-title']);
+                    $stmt->execute();
+                    $this->outputLog(Array("message" => "create album record."));
+                    $insId = $this->dba->lastInsertId("id");
+                    $this->outputLog(Array("message" => "get last insert id.", "id" => $insId));
+                    // image_group作成
+                    $groupCode = 'album_'.$insId;
+                    $stmt = $this->dba->prepare("INSERT INTO image_group (code, name) values (?, ?)");
+                    $stmt->bindParam(1, $groupCode);
+                    $stmt->bindParam(2, $params['group-title']);
+                    $stmt->execute();
+                    $this->outputLog(Array("message" => "create group record."));
+                } else {
+                    $groupCode = $params["id"];
+                }
+                $this->outputLog(Array("message" => "insert image start.", "group code" => $groupCode));
+                // image_content
+                $stmt = $this->dba->prepare("INSERT INTO image_content (group_code, title, file_path) values (?, ?, ?)");
                 $stmt->bindParam(1, $groupCode);
-                $stmt->bindParam(2, $params['group-title']);
+                $stmt->bindParam(2, $params['title']);
+                $stmt->bindParam(3, $file_path);
                 $stmt->execute();
-                $this->outputLog(Array("message" => "create group record."));
+                $ret[] = Array("result" => "Success.", "file" => $_FILES['file']['name'][$i]);
             } else {
-                $groupCode = $params["id"];
+                $ret[] = Array("result" => "Upload error.", "file" => $_FILES['file']['name'][$i]);
             }
-            $this->outputLog(Array("message" => "insert image start.", "group code" => $groupCode));
-            // image_content
-            $stmt = $this->dba->prepare("INSERT INTO image_content (group_code, title, file_path) values (?, ?, ?)");
-            $stmt->bindParam(1, $groupCode);
-            $stmt->bindParam(2, $params['title']);
-            $stmt->bindParam(3, $file_path);
-            $stmt->execute();
-            $ret = Array("result" => "Success.");
-        } else {
-            $ret = Array("result" => "Upload error.");
         }
         return $ret;
     }
