@@ -15,7 +15,7 @@ class FileModule extends BaseModule
     }
 
     public function uploadAlbum() {
-        $method = "uploadLocalServer";
+        $method = $this->ftpConfig->method;
         // POSTパラメータ取得
         $params = $_POST;
         $ret=[];

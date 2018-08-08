@@ -1,13 +1,17 @@
 <?php
 
+require_once './config/ServerConfig.php';
+
 class BaseModule
 {
     private static $connInfo;
+    private $serverConfig;
     protected $db;
     protected $name;
 
     public function __construct()
     {
+        $this->setConnectionInfo();
         $this->initDb();
     }
 
@@ -21,9 +25,10 @@ class BaseModule
         $this->db = new PDO($dsn, self::$connInfo['dbuser'], self::$connInfo['password']);
     }
 
-    public static function setConnectionInfo($connInfo)
+    private function setConnectionInfo()
     {
-        self::$connInfo = $connInfo;
+        $this->serverConfig = new ServerConfig();
+        self::$connInfo = $this->serverConfig->connInfo;
     }
 
     public function prepare($sql) {
