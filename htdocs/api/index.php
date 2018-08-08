@@ -10,20 +10,20 @@ if (empty($_SERVER['PATH_INFO'])) {
     header('./index.html');
 }
 // DB接続情報設定
-/*
+
 $connInfo = array(
     'host'     => 'mysql1.php.xdomain.ne.jp',
     'dbname'   => 'funabashiksc_db',
     'dbuser'   => 'funabashiksc_dbu',
     'password' => 'vauevr7hD3K'
 );
-*/
+/*
 $connInfo = array(
     'host'     => '127.0.0.1',
     'dbname'   => 'kscdb',
     'dbuser'   => 'kscdbuser',
     'password' => 'kscdbuser'
-);
+);*/
 BaseModule::setConnectionInfo($connInfo);
 
 
